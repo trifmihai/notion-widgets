@@ -9,49 +9,26 @@
     *{box-sizing:border-box}
     html,body{margin:0;min-height:100%;background:#090909}
     body{display:grid;place-items:center;padding:16px;font-family:Inter,system-ui,sans-serif}
-    .player{position:relative;width:min(1120px,100%);background:#000;border-radius:16px;overflow:hidden}
+    .player{width:min(1120px,100%);background:#000;border-radius:16px;overflow:hidden}
     video{display:block;width:100%;max-height:calc(100vh - 32px);background:#000}
-    .start{position:absolute;inset:0;display:grid;place-items:center;border:0;background:rgba(0,0,0,.55);color:#fff;cursor:pointer}
-    .start[hidden]{display:none}
-    .start span{display:inline-flex;align-items:center;gap:10px;padding:14px 20px;border:1px solid rgba(255,255,255,.25);border-radius:999px;background:rgba(20,20,20,.86);font-size:16px;font-weight:700;box-shadow:0 12px 32px rgba(0,0,0,.35)}
   </style>
 </head>
 <body>
   <main class="player">
-    <video id="video" controls playsinline preload="auto" src="https://video.gumlet.io/655d712a774b17ed87ac87e2/6a3c89785c2245e4674be3ab/main.mp4"></video>
-    <button id="start" class="start" type="button" hidden aria-label="Pornește video-ul cu sunet">
-      <span>▶ Pornește cu sunet</span>
-    </button>
+    <video id="video" controls playsinline preload="metadata" src="https://video.gumlet.io/655d712a774b17ed87ac87e2/6a3c89785c2245e4674be3ab/main.mp4"></video>
   </main>
   <script>
     const video=document.getElementById('video');
-    const start=document.getElementById('start');
     const speed=1.5;
 
-    function prepare(){
+    function setSpeed(){
       video.defaultPlaybackRate=speed;
       video.playbackRate=speed;
-      video.muted=false;
-      video.volume=1;
     }
 
-    async function tryAutoplayWithSound(){
-      prepare();
-      try{
-        await video.play();
-        start.hidden=true;
-      }catch{
-        start.hidden=false;
-      }
-    }
-
-    start.addEventListener('click',async()=>{
-      prepare();
-      await video.play();
-      start.hidden=true;
-    });
-
-    video.addEventListener('loadedmetadata',tryAutoplayWithSound,{once:true});
+    setSpeed();
+    video.addEventListener('loadedmetadata',setSpeed,{once:true});
+    video.addEventListener('play',setSpeed);
   </script>
 </body>
 </html>
