@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="color-scheme" content="dark">
-  <title>Video</title>
+  <title>Video 1.5x</title>
   <style>
     *{box-sizing:border-box}
     html,body{margin:0;min-height:100%;background:#090909}
@@ -26,31 +26,45 @@
     </iframe>
   </main>
 
-  <script src="https://cdn.jsdelivr.net/npm/@gumlet/player.js/dist/main.global.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@gumlet/player.js@2.0.16/dist/player.min.js"></script>
   <script>
-    const params = new URLSearchParams(window.location.search);
-    const requestedSpeed = Number(params.get('speed'));
-    const speed = Number.isFinite(requestedSpeed) && requestedSpeed >= 0.25 && requestedSpeed <= 4
-      ? requestedSpeed
-      : 1.5;
+    (() => {
+      const params = new URLSearchParams(window.location.search);
+      const requestedSpeed = Number(params.get('speed'));
+      const speed = Number.isFinite(requestedSpeed) && requestedSpeed >= 0.25 && requestedSpeed <= 4
+        ? requestedSpeed
+        : 1.5;
 
-    document.title = `Video ${speed}x`;
+      document.title = `Video ${speed}x`;
 
-    const iframe = document.getElementById('gumlet-player');
-    const player = new playerjs.Player(iframe);
+      const iframe = document.getElementById('gumlet-player');
+      const player = new playerjs.Player(iframe);
+      const MAX_RETRIES = 8;
+      const RETRY_DELAY_MS = 150;
 
-    async function setSpeed() {
-      try {
-        await player.setPlaybackRate(speed);
-      } catch (error) {
-        console.error('Could not set playback speed:', error);
+      function applySpeed(attempt = 0) {
+        player.setPlaybackRate(speed);
+
+        player.getPlaybackRate((currentRate) => {
+          const parsedRate = Number(currentRate);
+          const isCorrect = Number.isFinite(parsedRate) && Math.abs(parsedRate - speed) < 0.01;
+
+          if (!isCorrect && attempt < MAX_RETRIES) {
+            window.setTimeout(() => applySpeed(attempt + 1), RETRY_DELAY_MS);
+          }
+        });
       }
-    }
 
-    player.on('ready', async () => {
-      await setSpeed();
-      player.on('play', setSpeed);
-    });
+      player.on('ready', () => {
+        applySpeed();
+
+        player.on('play', () => {
+          applySpeed();
+          window.setTimeout(() => applySpeed(), 250);
+          window.setTimeout(() => applySpeed(), 750);
+        });
+      });
+    })();
   </script>
 </body>
 </html>
