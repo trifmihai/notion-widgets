@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="ro">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Video</title>
+  <style>
+    *{box-sizing:border-box}
+    html,body{margin:0;min-height:100%;background:#090909}
+    body{display:grid;place-items:center;padding:16px;font-family:Inter,system-ui,sans-serif}
+    .player{position:relative;width:min(1120px,100%);aspect-ratio:16/9;background:#000;border-radius:16px;overflow:hidden}
+    iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+  </style>
+</head>
+<body>
+  <main class="player">
+    <iframe
+      id="gumlet-player"
+      loading="eager"
+      title="Gumlet video player"
+      src="https://play.gumlet.io/embed/6a3e607f79d93c513c451f7b?background=false&autoplay=false&loop=false&disable_player_controls=false"
+      referrerpolicy="origin"
+      allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture; fullscreen; clipboard-write"
+      allowfullscreen>
+    </iframe>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@gumlet/player.js/dist/main.global.js"></script>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const requestedSpeed = Number(params.get('speed'));
+    const speed = Number.isFinite(requestedSpeed) && requestedSpeed >= 0.25 && requestedSpeed <= 4
+      ? requestedSpeed
+      : 1.5;
+
+    document.title = `Video ${speed}x`;
+
+    const iframe = document.getElementById('gumlet-player');
+    const player = new playerjs.Player(iframe);
+
+    async function setSpeed() {
+      try {
+        await player.setPlaybackRate(speed);
+      } catch (error) {
+        console.error('Could not set playback speed:', error);
+      }
+    }
+
+    player.on('ready', async () => {
+      await setSpeed();
+      player.on('play', setSpeed);
+    });
+  </script>
+</body>
+</html>
